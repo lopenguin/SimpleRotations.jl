@@ -2,7 +2,7 @@ module SimpleRotations
 
 using LinearAlgebra
 
-export axang2rotm, rotm2axang, rotm2quat, quat2rotm, randrotation, unifrandrotation, project2SO3, project2SOd, roterror
+export axang2rotm, rotm2axang, rotm2quat, quat2rotm, randrotation, project2SO3, roterror
 
 
 """
