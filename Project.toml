@@ -1,0 +1,10 @@
+name = "SimpleRotations"
+uuid = "0fce36b9-6dcc-4fe6-81e6-89b1d3ce289e"
+authors = ["Lorenzo Shaikewitz <lorenzos@mit.edu>"]
+version = "0.1.0"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+
+[compat]
+LinearAlgebra = "1.11.0"
