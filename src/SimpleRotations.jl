@@ -3,6 +3,7 @@ module SimpleRotations
 using LinearAlgebra
 
 export axang2rotm, rotm2axang, rotm2quat, quat2rotm, randrotation, project2SO3, roterror
+export Ω1, Ω2
 
 
 """
@@ -22,8 +23,8 @@ function axang2rotm(ω, θ)
 end
 
 # this is to prevent errors when close to 1
-@noinline my_slow_acos(x) = x ≈ 1 ? zero(x) : x ≈ -1 ? one(x)*π : acos(x)
-my_acos(x) = abs(x) <= one(x) ? acos(x) : my_slow_acos(x)
+@noinline slow_robust_acos(x) = x ≈ 1 ? zero(x) : x ≈ -1 ? one(x)*π : acos(x)
+robust_acos(x) = abs(x) <= one(x) ? acos(x) : slow_robust_acos(x)
 
 """
     rotm2axang(R)
@@ -31,7 +32,7 @@ my_acos(x) = abs(x) <= one(x) ? acos(x) : my_slow_acos(x)
 Convert a rotation matrix `R` to axis-angle pair (`ω`, `θ`)
 """
 function rotm2axang(R)
-    θ = my_acos((tr(R) - 1) / 2)
+    θ = robust_acos((tr(R) - 1) / 2)
     ω = [R[3,2] - R[2,3]; R[1,3] - R[3,1]; R[2,1] - R[1,2]] ./ (2*sin(θ))
     return ω, θ
 end
@@ -92,9 +93,50 @@ Essentially just a copy of `rotm2axang` without axis computation.
 """
 function roterror(R₁, R₂)
     R = R₁'*R₂
-    θ = my_acos((tr(R) - 1) / 2)
+    θ = robust_acos((tr(R) - 1) / 2)
     # ω = [R[3,2] - R[2,3]; R[1,3] - R[3,1]; R[2,1] - R[1,2]] ./ (2*sin(θ))
     return θ*180/π
+end
+
+
+"""
+    Ω1(q)
+
+Quaternion product -> matrix arithmetic. Obeys
+`a ⊗ b = Ω1(a)*b` where `a,b` are quaternions.
+
+Automatically adds leading 0 if dimension is 3.
+
+Also satisfies `Ω1(a^{-1}) = Ω1(a)^T`.
+"""
+function Ω1(q)
+    if size(q)[1] == 3
+        q = [0; q]
+    end
+    [q[1] -q[2] -q[3] -q[4];
+     q[2]  q[1] -q[4]  q[3];
+     q[3]  q[4]  q[1] -q[2];
+     q[4] -q[3]  q[2]  q[1]]
+end
+
+"""
+    Ω2(q)
+
+Quaternion product -> matrix arithmetic. Obeys
+`a ⊗ b = Ω2(b)*a` where `a,b` are quaternions.
+
+Automatically adds leading 0 if dimension is 3.
+
+Also satisfies `Ω2(a^{-1}) = Ω2(a)^T`.
+"""
+function Ω2(q)
+    if size(q)[1] == 3
+        q = [0; q]
+    end
+    [q[1] -q[2] -q[3] -q[4];
+     q[2]  q[1]  q[4] -q[3];
+     q[3] -q[4]  q[1]  q[2];
+     q[4]  q[3] -q[2]  q[1]]
 end
 
 
